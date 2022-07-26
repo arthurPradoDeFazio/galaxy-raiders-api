@@ -2,6 +2,7 @@
 package galaxyraiders.core.physics
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import kotlin.math.pow
 
 @JsonIgnoreProperties("unit", "normal", "degree", "magnitude")
 data class Vector2D(val dx: Double, val dy: Double) {
@@ -10,57 +11,80 @@ data class Vector2D(val dx: Double, val dy: Double) {
   }
 
   val magnitude: Double
-    get() = INVALID_DOUBLE
+    get() = Math.sqrt(dx.pow(2) + dy.pow(2))
 
   val radiant: Double
-    get() = INVALID_DOUBLE
+    get() {
+      val cosWithE1: Double = dx / magnitude
+      if (dy > 0)
+        return Math.acos(cosWithE1)
+      return -Math.acos(cosWithE1)
+    }
 
   val degree: Double
-    get() = INVALID_DOUBLE
+    get() = Math.toDegrees(radiant)
 
   val unit: Vector2D
-    get() = INVALID_VECTOR
+    get() = Vector2D(dx / magnitude, dy / magnitude)
 
   val normal: Vector2D
-    get() = INVALID_VECTOR
+    get() = Vector2D(dy, -dx) / magnitude
 
   operator fun times(scalar: Double): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(dx * scalar, dy * scalar)
   }
 
   operator fun div(scalar: Double): Vector2D {
-    return INVALID_VECTOR
+    return this * (1 / scalar)
   }
 
   operator fun times(v: Vector2D): Double {
-    return INVALID_DOUBLE
+    return dx * v.dx + dy * v.dy
   }
 
   operator fun plus(v: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(dx + v.dx, dy + v.dy)
   }
 
   operator fun plus(p: Point2D): Point2D {
-    return INVALID_POINT
+    return Point2D(dx + p.x, dy + p.y)
   }
 
   operator fun unaryMinus(): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(-dx, -dy)
   }
 
   operator fun minus(v: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(dx - v.dx, dy - v.dy)
   }
 
   fun scalarProject(target: Vector2D): Double {
-    return INVALID_DOUBLE
+    val result: Double
+    if (target.dy == 0.0)
+      result = dx
+    else if (target.dx == 0.0)
+      result = dy
+    else {
+      val lambda: Double = (this * target) / (target * target)
+      result = lambda * target.magnitude
+    }
+    return result
   }
 
   fun vectorProject(target: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    val result: Vector2D
+    if (target.dy == 0.0)
+      result = Vector2D(dx, 0.0)
+    else if (target.dx == 0.0)
+      result = Vector2D(0.0, dy)
+    else {
+      val lambda: Double = this * (target.unit / target.magnitude)
+      result = lambda * target
+    }
+    return result
   }
 }
 
 operator fun Double.times(v: Vector2D): Vector2D {
-  return INVALID_VECTOR
+  return v * this
 }
