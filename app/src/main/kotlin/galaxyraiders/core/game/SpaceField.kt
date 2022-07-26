@@ -35,11 +35,14 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
   var missiles: List<Missile> = emptyList()
     private set
 
+  var explosions: List<Explosion> = emptyList()
+    private set
+
   var asteroids: List<Asteroid> = emptyList()
     private set
 
   val spaceObjects: List<SpaceObject>
-    get() = listOf(this.ship) + this.missiles + this.asteroids
+    get() = listOf(this.ship) + this.missiles + this.asteroids + this.explosions
 
   fun moveShip() {
     this.ship.move(boundaryX, boundaryY)
@@ -61,6 +64,14 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     this.asteroids += this.createAsteroidWithRandomProperties()
   }
 
+  fun generateExplosionAt(point: Point2D) {
+    this.explosions += Explosion(point)
+  }
+
+  fun ageExplosions() {
+    this.explosions.forEach { it.age() }
+  }
+
   fun trimMissiles() {
     this.missiles = this.missiles.filter {
       it.inBoundaries(this.boundaryX, this.boundaryY)
@@ -71,6 +82,20 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     this.asteroids = this.asteroids.filter {
       it.inBoundaries(this.boundaryX, this.boundaryY)
     }
+  }
+
+  fun trimExplosions() {
+    this.explosions = this.explosions.filter {
+      it.stillLasts()
+    }
+  }
+
+  fun contactPointBetween(first: SpaceObject, second: SpaceObject): Point2D {
+    val originToFirstCenter: Vector2D = first.center.toVector()
+    val originToSecondCenter: Vector2D = second.center.toVector()
+    val firstCenterToSecondCenter: Vector2D = originToSecondCenter - originToFirstCenter
+    val firstToContactPoint: Vector2D = firstCenterToSecondCenter.unit * first.radius
+    return first.center + firstToContactPoint
   }
 
   private fun initializeShip(): SpaceShip {
