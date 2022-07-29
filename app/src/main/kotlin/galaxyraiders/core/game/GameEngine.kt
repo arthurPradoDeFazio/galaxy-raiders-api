@@ -1,7 +1,6 @@
 package galaxyraiders.core.game
 
 import galaxyraiders.Config
-import galaxyraiders.core.physics.Point2D
 import galaxyraiders.ports.RandomGenerator
 import galaxyraiders.ports.ui.Controller
 import galaxyraiders.ports.ui.Controller.PlayerCommand
@@ -93,7 +92,7 @@ class GameEngine(
   fun handleCollisions() {
     this.field.spaceObjects.forEachPair {
         (first, second) ->
-      if (first.impacts(second)) {
+      if ((first !is Explosion) && (second !is Explosion) && (first.impacts(second))) {
         this.field.generateExplosionAt(this.field.contactPointBetween(first, second))
         first.collideWith(second, GameEngineConfig.coefficientRestitution)
       }
